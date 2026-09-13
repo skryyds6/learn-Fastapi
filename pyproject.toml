@@ -1,0 +1,27 @@
+[project]
+name = "learn-fastapi"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "skryyds6", email = "3287064984@qq.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+    "requests>=2.34.2",
+]
+
+[project.scripts]
+learn-fastapi = "learn_fastapi:main"
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
+[tool.fastapi]
+entrypoint = "learn_fastapi.main:app"
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"
