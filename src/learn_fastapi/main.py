@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 app = FastAPI()
 
@@ -7,12 +7,9 @@ app = FastAPI()
 async def read_root():
     return {"Hello": "World"}
 
-class Book(BaseModel):
-    title: str
-    author: str
-    price: float
+class User(BaseModel):
+    username: str = Field(default="mike", min_length=2, max_length=10)
+    password: str = Field(default="123456", min_length=6, max_length=20)
 
-
-@app.post("/add_books")
-async def add_books(book: Book):
-    return {"title": book.title, "author": book.author, "price": book.price}
+async def register_user(user: User):
+    return {"message": "User registered successfully", "user": user}
