@@ -7,10 +7,12 @@ app = FastAPI()
 async def read_root():
     return {"Hello": "World"}
 
-class User(BaseModel):
-    username: str
-    password: str
+class Book(BaseModel):
+    title: str
+    author: str
+    price: float
 
-@app.post("/register")
-async def register_user(user: User):
-    return {"message": "User registered successfully", "user": user}
+
+@app.post("/add_books")
+async def add_books(book: Book):
+    return {"title": book.title, "author": book.author, "price": book.price}
