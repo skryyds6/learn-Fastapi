@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -7,7 +7,15 @@ app = FastAPI()
 async def read_root():
     return {"Hello": "World"}
 
-@app.get("/file")
-async def get_file():
-    path = "./src/test.txt"  # Replace with the actual file path
-    return FileResponse(path)
+class News(BaseModel):
+    title: str
+    content: str
+    published: bool
+
+@app.get("/news",response_model=News)
+async def get_news():
+    return News(
+        title="Sample News Title",
+        content="This is the content of the news article.",
+        published=True
+    )
