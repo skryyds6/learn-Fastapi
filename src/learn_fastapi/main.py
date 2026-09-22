@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI
-from sqlalchemy import DateTime, Float, String, func
-from sqlalchemy.ext.asyncio import create_async_engine
+from fastapi import Depends, FastAPI
+from sqlalchemy import DateTime, Float, String, func, select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -54,7 +54,26 @@ async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine
+)
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+@app.get("/book/books")
+async def get_book_list(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Book))
+    book = result.scalars().all()
+    return book
