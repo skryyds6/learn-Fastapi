@@ -54,9 +54,10 @@ async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-AsyncSessionLocal = async_sessionmaker(
-    bind=engine
-)
+
+AsyncSessionLocal = async_sessionmaker(bind=engine)
+
+
 async def get_db():
     async with AsyncSessionLocal() as session:
         try:
@@ -68,9 +69,11 @@ async def get_db():
         finally:
             await session.close()
 
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
 
 @app.get("/book/books")
 async def get_book_list(db: AsyncSession = Depends(get_db)):
@@ -78,8 +81,14 @@ async def get_book_list(db: AsyncSession = Depends(get_db)):
     book = result.scalars().all()
     return book
 
+
 @app.get("/book/get_book/{book_id}")
-async def get_book(book_id:int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(func.count(Book.price)))#聚合查询
+async def get_book(book_id: int, db: AsyncSession = Depends(get_db)):
+    # 聚合查询
+    # result = await db.execute(select(func.count(Book.id)))
+    # result = await db.execute(select(func.max(Book.price)))
+    # result = await db.execute(select(func.min(Book.price)))
+    # result = await db.execute(select(func.sum(Book.price)))
+    result = await db.execute(select(func.avg(Book.price)))
     book = result.scalars().all()
     return book
