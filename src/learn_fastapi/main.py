@@ -92,3 +92,14 @@ async def get_book(book_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(func.avg(Book.price)))
     book = result.scalars().all()
     return book
+
+
+@app.get("/book/get_book_list")
+async def get_book_list(
+    db: AsyncSession = Depends(get_db), page: int = 1, page_size=10
+):
+    skip: int = (page - 1) * page_size
+    result = await db.execute(select(Book).offset(skip).limit(page_size))
+
+    book = result.scalars().all()
+    return book
