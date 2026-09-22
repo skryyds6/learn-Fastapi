@@ -8,8 +8,10 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
+    "aiomysql>=0.3.2",
     "fastapi[standard]>=0.141.1",
     "requests>=2.34.2",
+    "sqlalchemy[asyncio]>=2.0.53",
 ]
 
 [project.scripts]
