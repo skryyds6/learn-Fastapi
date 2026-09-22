@@ -77,3 +77,9 @@ async def get_book_list(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Book))
     book = result.scalars().all()
     return book
+
+@app.get("/book/get_book/{book_id}")
+async def get_book(book_id:int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(func.count(Book.price)))#聚合查询
+    book = result.scalars().all()
+    return book
