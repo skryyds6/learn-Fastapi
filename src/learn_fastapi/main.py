@@ -110,6 +110,7 @@ async def get_book_list_limit(
     book = result.scalars().all()
     return book
 
+
 class book_base(BaseModel):
     id: int
     bookname: str
@@ -117,33 +118,64 @@ class book_base(BaseModel):
     price: float
     publisher: str
 
+
 class new_book(BaseModel):
     bookname: str
     author: str
     price: float
     publisher: str
 
+
 # 新增数据
 @app.post("/book/add_book")
 async def add_book(book: book_base, db: AsyncSession = Depends(get_db)):
     # ORM对象--> add-->commit
-    book_obj = Book(**book.__dict__)
+    book_obj = Book(**book.model_dump())
     db.add(book_obj)
     await db.commit()
     await db.refresh(book_obj)
 
     return book
 
+
 # 修改数据
 @app.put("/book/book_update/{book_id}")
-async def book_update(book_id:int, data_update:new_book,db:AsyncSession = Depends(get_db)):
+async def book_update(
+    book_id: int, data_update: new_book, db: AsyncSession = Depends(get_db)
+):
+    # 先查找再修改
     db_book = await db.get(Book, book_id)
     if db_book is None:
-        raise HTTPException(status_code=404,detail="没有这本书")
-    db_book.bookname = data_update.bookname
-    db_book.author = data_update.author
-    db_book.price = data_update.price
-    db_book.publisher = data_update.publisher
+        raise HTTPException(status_code=404, detail="没有这本书")
+    # 动态更新字段，model_dump()  将 Pydantic 模型实例转换为标准 Python 原生字典
+    for key, value in data_update.model_dump().items():
+        setattr(db_book, key, value)
+    # setattr() 是 Python 的内置函数，全称是 "set attribute"，作用是动态给对象的属性赋值。
+    # object：要修改的目标对象。name：属性名（必须是字符串 str）。value：要赋予的新值。
+    await db.commit()
+    await db.refresh(db_book)
+    return db_book
+
+# 路径参数传递原书名，请求体传递更新内容
+@app.put("/book/book_update_by_name/{bookname}")
+async def book_update_by_name(
+    bookname: str,
+    data_update: new_book,
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. 根据书名查询单条记录
+    result = await db.execute(select(Book).where(Book.bookname == bookname))
+    db_book = result.scalars().first()
+
+    # 2. 校验是否存在
+    if db_book is None:
+        raise HTTPException(status_code=404, detail=f"未找到书名为《{bookname}》的书籍")
+
+    # 3. 动态更新字段（相比逐个赋值，model_dump 更简洁且安全）
+    for key, value in data_update.model_dump().items():
+        setattr(db_book, key, value)
+
+    # 4. 提交并刷新
     await db.commit()
     await db.refresh(db_book)
     return db_book
