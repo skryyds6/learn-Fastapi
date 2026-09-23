@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import DateTime, Float, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -37,7 +37,7 @@ class Base(DeclarativeBase):
         DateTime,
         insert_default=func.now(),
         default=func.now(),
-        onupdate=func.now,
+        onupdate=func.now(),
         comment="更新时间",
     )
 
@@ -117,6 +117,11 @@ class book_base(BaseModel):
     price: float
     publisher: str
 
+class new_book(BaseModel):
+    bookname: str
+    author: str
+    price: float
+    publisher: str
 
 # 新增数据
 @app.post("/book/add_book")
@@ -125,5 +130,20 @@ async def add_book(book: book_base, db: AsyncSession = Depends(get_db)):
     book_obj = Book(**book.__dict__)
     db.add(book_obj)
     await db.commit()
+    await db.refresh(book_obj)
+
     return book
 
+# 修改数据
+@app.put("/book/book_update/{book_id}")
+async def book_update(book_id:int, data_update:new_book,db:AsyncSession = Depends(get_db)):
+    db_book = await db.get(Book, book_id)
+    if db_book is None:
+        raise HTTPException(status_code=404,detail="没有这本书")
+    db_book.bookname = data_update.bookname
+    db_book.author = data_update.author
+    db_book.price = data_update.price
+    db_book.publisher = data_update.publisher
+    await db.commit()
+    await db.refresh(db_book)
+    return db_book
