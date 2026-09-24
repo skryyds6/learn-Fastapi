@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from learn-fastapi!")
+"""FastAPI learning project."""

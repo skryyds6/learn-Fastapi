@@ -1,0 +1,16 @@
+{
+  // 明确指定解释器，避免 VS Code 用了系统 Python（那样连 fastapi 都找不到）
+  "python.defaultInterpreterPath": "F:\\learn-Fastapi\\.venv\\Scripts\\python.exe",
+
+  // 本项目是 src 布局：src 下面是顶层包 learn_fastapi
+  // 这样 Pylance 才能解析 from learn_fastapi.xxx import yyy
+  "python.analysis.extraPaths": ["${workspaceFolder}/src"],
+
+  // 把缓存目录收起来，免得再新建文件时点进 __pycache__
+  "files.exclude": {
+    "**/__pycache__": true
+  },
+  "search.exclude": {
+    "**/__pycache__": true
+  }
+}
